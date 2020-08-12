@@ -300,8 +300,9 @@ def main(*args):
 
 		number_seeds = 5
 
-		df_corr2 = pd.DataFrame(np.c_[np.ones(number_seeds)], 
-		                  columns=["Test Set"])
+		df_corr2 = pd.DataFrame(np.c_[np.ones(number_seeds), np.ones(number_seeds)],
+		                  columns=["MSE", "FVU"])
+
 
 	
 	for l in range(0, number_seeds):
@@ -481,10 +482,13 @@ def main(*args):
 			corr_tmp_avg = mean_squared_error(list(y_test_biomass_field.values), list(y_pred))
 			# print(corr_tmp_avg, "corr_tmp_avg")
 			df_corr2.iloc[l, 0] = corr_tmp_avg
+			df_corr2.iloc[l, 1] = corr_tmp_avg/np.var(list(y_test_biomass_field.values))
 
 
 	#print(Results for Thousands of Trees Forest
-	df_corr2 = df_corr2.reindex(df_corr2.mean().sort_values(ascending=False).index, axis=1)
+	if rice_data:
+		df_corr2 = df_corr2.reindex(df_corr2.mean().sort_values(ascending=False).index, axis=1)
+
 	value = df_corr2.mean()
 	std = df_corr2.std()
 	#print('STD ERROR')
@@ -515,17 +519,35 @@ def main(*args):
 		plt.title('Field Biomass Prediction across Genotypes using Lab Nipponbare Model')
 		plt.savefig("BiomassPredictionResults_"+ensemble_method+str(ntrees)+"Trees_TOP.pdf", bbox_inches='tight')
 		plt.close()
-
-
+	# else:
+	# 	colors=["red"]
+	# 	plt.bar(range(len(df_corr2.columns)), value, width, yerr=std, color=colors, error_kw=dict(lw=0.4, capsize=2, capthick=0.4), alpha=0.5, align='center')
+	# 	plt.xlim([-1, len(df_corr2.columns)])
+	# 	plt.xticks(range(len(df_corr2.columns)), df_corr2.columns, rotation='vertical', fontsize=9)#, step=0.5)
+	# 	#plt.yticks(np.arange(-1, 1.1, 0.1))
+	# 	plt.ylabel('Mean Squared Error ')
+	# 	plt.title('Biomass Prediction on the Test Set')
+	# 	plt.savefig("BiomassPredictionResults_"+ensemble_method+str(ntrees)+"Trees.pdf", bbox_inches='tight')
+	# 	plt.close()
 	else:
 		colors=["red"]
-		plt.bar(range(len(df_corr2.columns)), value, width, yerr=std, color=colors, error_kw=dict(lw=0.4, capsize=2, capthick=0.4), alpha=0.5, align='center')
-		plt.xlim([-1, len(df_corr2.columns)])
-		plt.xticks(range(len(df_corr2.columns)), df_corr2.columns, rotation='vertical', fontsize=9)#, step=0.5)
+		plt.bar(range(1), value[0], width, yerr=std[0], color=colors, error_kw=dict(lw=0.4, capsize=2, capthick=0.4), alpha=0.5, align='center')
+		plt.xlim([-1, 1])
+		plt.xticks(range(1), ["Test Set"], rotation='vertical', fontsize=9)#, step=0.5)
 		#plt.yticks(np.arange(-1, 1.1, 0.1))
-		plt.ylabel('Mean Squared Error ')
-		plt.title('Biomass Prediction on the Test Set')
-		plt.savefig("BiomassPredictionResults_"+ensemble_method+str(ntrees)+"Trees.pdf", bbox_inches='tight')
+		plt.ylabel('Mean Squared Error (MSE)')
+		plt.title('Biomass Prediction on the Test Set (MSE)')
+		plt.savefig("BiomassPredictionResults_"+ensemble_method+str(ntrees)+"Trees_MSE.pdf", bbox_inches='tight')
+		plt.close()
+
+		colors=["green"]
+		plt.bar(range(1), value[1], width, yerr=std[1], color=colors, error_kw=dict(lw=0.4, capsize=2, capthick=0.4), alpha=0.5, align='center')
+		plt.xlim([-1, 1])
+		plt.xticks(range(1), ["Test Set"], rotation='vertical', fontsize=9)#, step=0.5)
+		#plt.yticks(np.arange(-1, 1.1, 0.1))
+		plt.ylabel('Fraction of Variance Unexplained (FVU)')
+		plt.title('Biomass Prediction on the Test Set (FVU)')
+		plt.savefig("BiomassPredictionResults_"+ensemble_method+str(ntrees)+"Trees_FVU.pdf", bbox_inches='tight')
 		plt.close()
 
 
